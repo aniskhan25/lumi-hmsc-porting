@@ -14,7 +14,7 @@
 
 ### Topic
 
--  
+- Finalisation of project logistics
 
 ### Summary
 
