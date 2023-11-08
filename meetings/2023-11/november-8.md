@@ -14,12 +14,24 @@
 
 ### Topic
 
-- 
+-  
 
 ### Summary
 
-- A
+- Next steps on project management
+- Multi-gpu implementation
+	- Code walk-thru and demo on Lumi
+	- Discussion on anamolous ayncio performance
 
 ### Conclusion
 
-- A
+- Mantain a separate repository for porting program
+- Further exploration needed for multi-gpu implementation, identify alternative multithreading packages/approaches
+
+### To-dos
+
+- Create repo (Anis)
+- Profile asyncio multi-gpu implementation (Anis)
+- Attempt to implement multi-gpu using MPI (Anis)
+- Share resources on project management (Tim)
+- Profile single-gpu implementation on Lumi for identification of AMD-specific bottlenecks (Gleb)

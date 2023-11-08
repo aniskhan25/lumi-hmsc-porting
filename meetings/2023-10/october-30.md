@@ -1,4 +1,4 @@
-# 8 November, 2023 Meeting Notes
+# 10 October, 2023 Meeting Notes
 
 -----
 
@@ -14,12 +14,16 @@
 
 ### Topic
 
-- 
+- Code deep-dive Hmsc-HPC 
 
 ### Summary
 
-- A
+- Introdutory presentation (Presenter: Gleb)
+	- Introduction to MCMC
+	- Repository walkthrough
+	- Code run script and demo
 
-### Conclusion
+### To-dos
 
-- A
+- Share demo jupyter notebook (Anis) and LUMI batch job scripts (Gleb) with the mentors 
+- Share resources on MCMC (Gleb)
