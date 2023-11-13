@@ -6,18 +6,22 @@ Installation done to `$WORKDIR`.
 You can set it for example to `export WORKDIR=/scratch/project_.../$USER`:
 
 ```bash
+# Install
 ml use /appl/local/csc/modulefiles
 ml tensorflow/2.12
 export PYTHONUSERBASE=$WORKDIR/python/local
 python3 -m pip install tensorflow_probability==0.20.0
+python3 -m pip install pyreadr
+git clone https://github.com/aniskhan25/hmsc-hpc.git $WORKDIR/hmsc-hpc
 
-# Create source script
+# Create script to do module loads etc environment setup
 cat << EOF > $WORKDIR/setup-env.sh
 #!/bin/bash
 ml use /appl/local/csc/modulefiles
 ml tensorflow/2.12
 export WORKDIR=\${WORKDIR:-$WORKDIR}
 export PYTHONUSERBASE=\$WORKDIR/python/local
+export PYTHONPATH=$WORKDIR/hmsc-hpc
 export PATH=\$WORKDIR/bin:\$PATH
 EOF
 chmod a+x $WORKDIR/setup-env.sh
