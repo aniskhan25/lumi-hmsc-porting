@@ -9,6 +9,8 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --time=00:15:00
 
+time0=$(date +%s.%N)
+
 ind=301
 MT=${1:-0}
 SAM=${2:-100}
@@ -40,3 +42,7 @@ for chain in {0..7}; do
     srun --exclusive -N 1 -n 1 --gpus-per-node=1 --gpus-per-task=1 --output="output/%A_$chain" python3 ./../../hmsc-hpc/hmsc/examples/run_gibbs_sampler.py --input $input_path --output $output_path --samples $SAM --transient $(($SAM*$THIN)) --thin $THIN --verbose 100 --chain $chain --fse 0  --profile $PROFILE &
 done
 wait
+
+time1=$(date +%s.%N)
+
+echo "Total runtime:" $(echo "$time1 - $time0" | bc) "s"
