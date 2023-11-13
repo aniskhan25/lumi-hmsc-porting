@@ -1,3 +1,4 @@
-# lumi-hmsc-porting Meeting Notes
+# lumi-hmsc-porting
 
-See [`meetings/`](https://github.com/aniskhan25/lumi-hmsc-porting/tree/main/meetings).
+* [Meeting notes](meetings/)
+* [HMSC setup on LUMI](README_LUMI.md)
