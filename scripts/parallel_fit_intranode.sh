@@ -5,7 +5,7 @@
 #SBATCH --partition=standard-g
 #SBATCH --nodes=1
 #SBATCH --ntasks=8
-#SBATCH --gpus-per-task=1
+#SBATCH --gpus-per-node=8
 #SBATCH --cpus-per-task=4
 #SBATCH --time=00:15:00
 
@@ -37,6 +37,6 @@ for chain in {0..7}; do
     # Remove old output
     rm "$output_path"
     mkdir -p $(dirname $output_path)
-    srun --exclusive -n 1 --gpus-per-task=1 --output="output/%A_$chain" python3 ./../../hmsc-hpc/hmsc/examples/run_gibbs_sampler.py --input $input_path --output $output_path --samples $SAM --transient $(($SAM*$THIN)) --thin $THIN --verbose 100 --chain $chain --fse 0  --profile $PROFILE &
+    srun --exclusive -N 1 -n 1 --gpus-per-node=1 --gpus-per-task=1 --output="output/%A_$chain" python3 ./../../hmsc-hpc/hmsc/examples/run_gibbs_sampler.py --input $input_path --output $output_path --samples $SAM --transient $(($SAM*$THIN)) --thin $THIN --verbose 100 --chain $chain --fse 0  --profile $PROFILE &
 done
 wait
