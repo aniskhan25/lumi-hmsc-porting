@@ -9,7 +9,7 @@ import timeit
 # E.g. running on LUMI:
 # ml use /appl/local/csc/modulefiles
 # ml tensorflow/2.12
-# python3 cholesky_benchmark.py 10,100,1000,10000,15000,20000,25000 10 double
+# srun -p dev-g --nodes=1 --ntasks-per-node=1 --mem=32G --gpus-per-node=1 -t 00:15:00 python3 cholesky_benchmark.py 10,100,1000,10000,15000,20000,25000 10 double
 #
 # Puhti:
 # srun -p gputest --nodes=1 --ntasks-per-node=1 --mem=32G --gres=gpu:v100:1 -t 0:15:00 python3 cholesky_benchmark.py 10,100,1000,10000,15000,20000,25000 10 double
