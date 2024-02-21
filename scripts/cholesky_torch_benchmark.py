@@ -7,6 +7,9 @@ import timeit
 # ml use /appl/local/csc/modulefiles
 # module load pytorch
 # python3 cholesky_torch_benchmark.py 10,100,1000,10000,15000,20000,25000 10 double
+#
+# Puhti:
+# srun -p gputest --nodes=1 --ntasks-per-node=1 --mem=32G --gres=gpu:v100:1 -t 0:15:00 python3 cholesky_torch_benchmark.py 10,100,1000,10000,15000,20000,25000 10 double
 
 def chol_pytorch(A_tensor):
     def run():
