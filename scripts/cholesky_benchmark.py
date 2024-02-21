@@ -9,7 +9,7 @@ import timeit
 # E.g. running on LUMI:
 # ml use /appl/local/csc/modulefiles
 # ml tensorflow/2.12
-# python3 cholesky_benchmark.py 10,100,1000,10000,15000,20000,25000 10
+# python3 cholesky_benchmark.py 10,100,1000,10000,15000,20000,25000 10 double
 
 def chol_tf(A, dtype=tf.float64):
     with tf.device('/GPU:0'):
