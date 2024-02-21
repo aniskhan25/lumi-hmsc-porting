@@ -41,5 +41,5 @@ if __name__ == '__main__':
         run()
         # Timed choleskys
         averages[N] = timeit.timeit(run, number=M) / M
-        print("Avg. time per run for size {}: {:.5e}sec".format(N, timeit.timeit(run, number=M) / M))
+        print("Avg. time per run for size {}: {:.5e}sec".format(N, timeit.timeit(run, number=M) / M), flush=True)
 
