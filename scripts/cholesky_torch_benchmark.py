@@ -3,6 +3,11 @@ import numpy as np
 import torch
 import timeit
 
+# Running on LUMI with pytorch container module loaded
+# ml use /appl/local/csc/modulefiles
+# module load pytorch
+# python3 cholesky_torch_benchmark.py 10,100,1000,10000,15000,20000,25000 10 double
+
 def chol_pytorch(A_tensor):
     def run():
         torch.linalg.cholesky(A_tensor)
