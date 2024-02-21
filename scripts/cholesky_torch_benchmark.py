@@ -40,6 +40,7 @@ if __name__ == '__main__':
         # Warmup
         run()
         # Timed choleskys
-        averages[N] = timeit.timeit(run, number=M) / M
-        print("Avg. time per run for size {}: {:.5e}sec".format(N, timeit.timeit(run, number=M) / M))
+        average = timeit.timeit(run, number=M) / M
+        print("Avg. time per run for size {:8}: {:.5e} sec".format(N, average), flush=True)
+        averages[N] = average
     print(averages)
