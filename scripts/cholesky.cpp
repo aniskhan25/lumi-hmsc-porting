@@ -240,7 +240,7 @@ void run(int n, int repeat) {
     for (int i = 0; i < n; i++) {
         // Set off-diagonals to a value < 1
         for (int j = 0; j < n; j++) {
-            A[i * n + j] = ((double)(i + j)) / (n*n);
+            A[i * n + j] = ((T)(i + j)) / (n*n);
         }
         // Set diagonal
         A[i * n + i] = i + 1;
