@@ -43,7 +43,6 @@
 #else
 
 #include <hip/hip_runtime.h>
-#include <hipblas/hipblas.h>
 #include "rocblas.h"
 #include "rocsolver.h"
 
@@ -67,10 +66,10 @@
 #define cudaStreamCreateWithFlags             hipStreamCreateWithFlags
 
 #define cusolverStatus_t                      rocblas_status
-#define CUSOLVER_STATUS_SUCCESS               ((rocblas_status)HIPBLAS_STATUS_SUCCESS)
+#define CUSOLVER_STATUS_SUCCESS               rocblas_status_success
 #define cublasFillMode_t                      rocblas_fill
-#define CUBLAS_FILL_MODE_LOWER                ((rocblas_fill)HIPBLAS_FILL_MODE_LOWER)
-#define CUBLAS_FILL_MODE_UPPER                ((rocblas_fill)HIPBLAS_FILL_MODE_UPPER)
+#define CUBLAS_FILL_MODE_LOWER                rocblas_fill_lower
+#define CUBLAS_FILL_MODE_UPPER                rocblas_fill_upper
 #define cusolverDnHandle_t                    rocblas_handle
 #define cusolverDnCreate                      rocblas_create_handle
 #define cusolverDnDestroy                     rocblas_destroy_handle
