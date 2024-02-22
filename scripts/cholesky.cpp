@@ -35,8 +35,49 @@
 #include <stdexcept>
 #include <vector>
 
+#ifdef CUDA
+
 #include <cuda_runtime.h>
 #include <cusolverDn.h>
+
+#else
+
+#include <hip/hip_runtime.h>
+#include <hipblas/hipblas.h>
+#include "rocblas.h"
+#include "rocsolver.h"
+
+#define cudaError_t                           hipError_t
+#define cudaSuccess                           hipSuccess
+#define cudaMalloc                            hipMalloc
+#define cudaFree                              hipFree
+#define cudaDeviceReset                       hipDeviceReset
+#define cudaDeviceSynchronize                 hipDeviceSynchronize
+
+#define cudaMemcpyAsync                       hipMemcpyAsync
+#define cudaMemcpy                            hipMemcpy
+#define cudaMemcpyDeviceToDevice              hipMemcpyDeviceToDevice
+#define cudaMemcpyDeviceToHost                hipMemcpyDeviceToHost
+#define cudaMemcpyHostToDevice                hipMemcpyHostToDevice
+
+#define cudaStream_t                          hipStream_t
+#define cudaStreamDestroy                     hipStreamDestroy
+#define cudaStreamSynchronize                 hipStreamSynchronize
+#define cudaStreamNonBlocking                 hipStreamNonBlocking
+#define cudaStreamCreateWithFlags             hipStreamCreateWithFlags
+
+#define cusolverStatus_t                      rocblas_status
+#define CUSOLVER_STATUS_SUCCESS               ((rocblas_status)HIPBLAS_STATUS_SUCCESS)
+#define cublasFillMode_t                      rocblas_fill
+#define CUBLAS_FILL_MODE_LOWER                ((rocblas_fill)HIPBLAS_FILL_MODE_LOWER)
+#define CUBLAS_FILL_MODE_UPPER                ((rocblas_fill)HIPBLAS_FILL_MODE_UPPER)
+#define cusolverDnHandle_t                    rocblas_handle
+#define cusolverDnCreate                      rocblas_create_handle
+#define cusolverDnDestroy                     rocblas_destroy_handle
+#define cusolverDnSetStream                   rocblas_set_stream
+
+#endif
+
 
 // CUDA API error checking
 #define CUDA_CHECK(err)                                                                            \
@@ -74,7 +115,7 @@ void print_matrix(const int &n, const std::vector<T> &A) {
     std::cout << std::flush;
 }
 
-
+#ifdef CUDA
 template <typename T>
 cudaDataType cusolver_dtype;
 
@@ -83,31 +124,43 @@ cudaDataType cusolver_dtype<float> = CUDA_R_32F;
 
 template<>
 cudaDataType cusolver_dtype<double> = CUDA_R_64F;
+#else
+template <typename T>
+rocblas_status (*rocsolver_potrf)(rocblas_handle, const rocblas_fill, const int, T*, const int, int*);
+
+template<>
+rocblas_status (*rocsolver_potrf<float>)(rocblas_handle, const rocblas_fill, const int, float*, const int, int*) = &rocsolver_spotrf;
+
+template<>
+rocblas_status (*rocsolver_potrf<double>)(rocblas_handle, const rocblas_fill, const int, double*, const int, int*) = &rocsolver_dpotrf;
+#endif
 
 
 template<typename T>
 struct Calculator {
-    cusolverDnHandle_t handle = NULL;
     cudaStream_t stream = NULL;
-    cusolverDnParams_t params = NULL;
+    cusolverDnHandle_t handle = NULL;
     int info = 0;
     int *d_info = nullptr;
+#ifdef CUDA
+    cusolverDnParams_t params = NULL;
     size_t d_work_size = 0;
     void *d_work = nullptr;
     size_t h_work_size = 0;
     void *h_work = nullptr;
+#endif
     int n;
     int lda;
     cublasFillMode_t uplo;
 
-
     Calculator(int n, cublasFillMode_t uplo) : n{n}, lda{n}, uplo{uplo} {
         // Create handlers etc
-        CUSOLVER_CHECK(cusolverDnCreate(&handle));
         CUDA_CHECK(cudaStreamCreateWithFlags(&stream, cudaStreamNonBlocking));
+        CUSOLVER_CHECK(cusolverDnCreate(&handle));
         CUSOLVER_CHECK(cusolverDnSetStream(handle, stream));
-        CUSOLVER_CHECK(cusolverDnCreateParams(&params));
         CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&d_info), sizeof(int)));
+#ifdef CUDA
+        CUSOLVER_CHECK(cusolverDnCreateParams(&params));
 
         // Build working space
         CUSOLVER_CHECK(cusolverDnXpotrf_bufferSize(
@@ -122,15 +175,18 @@ struct Calculator {
                 throw std::runtime_error("Error: h_work not allocated.");
             }
         }
+#endif
     }
 
     ~Calculator() {
         // Free resources
+#ifdef CUDA
         free(h_work);
         cudaFree(d_work);
+#endif
         cudaFree(d_info);
-        cudaStreamDestroy(stream);
         cusolverDnDestroy(handle);
+        cudaStreamDestroy(stream);
     }
 
     void calculate(const T* d_A_input, T* A = nullptr) {
@@ -141,9 +197,13 @@ struct Calculator {
         CUDA_CHECK(cudaMemcpyAsync(d_A, d_A_input, sizeof(T) * n*n, cudaMemcpyDeviceToDevice, stream));
 
         // Cholesky factorization
+#ifdef CUDA
         CUSOLVER_CHECK(cusolverDnXpotrf(handle, params, uplo, n, cusolver_dtype<T>,
                                         d_A, lda, cusolver_dtype<T>, d_work, d_work_size,
                                         h_work, h_work_size, d_info));
+#else
+        CUSOLVER_CHECK((*rocsolver_potrf<T>)(handle, uplo, n, d_A, lda, d_info));
+#endif
 
         CUDA_CHECK(cudaMemcpyAsync(&info, d_info, sizeof(int), cudaMemcpyDeviceToHost, stream));
 
