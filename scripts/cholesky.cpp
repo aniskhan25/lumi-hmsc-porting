@@ -218,6 +218,7 @@ struct Calculator {
         // Copy back to host
         if (A) {
             CUDA_CHECK(cudaMemcpyAsync(A, d_A, sizeof(T) * n*n, cudaMemcpyDeviceToHost, stream));
+            CUDA_CHECK(cudaStreamSynchronize(stream));
         }
         cudaFree(d_A);
     }
