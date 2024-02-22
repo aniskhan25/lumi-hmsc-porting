@@ -103,7 +103,7 @@ average time 1.22325 s (including handle creation)
 export EBU_USER_PREFIX=$WORKDIR/EasyBuild
 ml LUMI/22.08
 ml partition/G
-ml rocm/5.6.1-singularity-20240207
+ml rocm/5.7.1-singularity-20240207
 
 singularity exec $SIF hipcc -std=c++14 --offload-arch=gfx90a -O3 -lrocblas -lrocsolver cholesky.cpp
 
