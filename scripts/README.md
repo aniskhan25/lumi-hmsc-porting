@@ -150,3 +150,30 @@ RUN n: 25000 repeat: 10 dtype: d
 average time 0.844338 s
 average time 0.848023 s (including handle creation)
 ```
+
+
+### Mahti (A100)
+
+```bash
+ml cuda/11.5.0
+
+nvcc -DCUDA -O3 -arch=sm_80 -lcusolver cholesky.cpp
+
+srun -p gputest --nodes=1 --ntasks-per-node=1 --mem=32G --gres=gpu:a100:1 -t 0:15:00 ./a.out 3,25000 10
+
+RUN n: 3 repeat: 10 dtype: d
+Input matrix
+    1.000    0.111    0.222
+    0.111    2.000    0.333
+    0.222    0.333    3.000
+Output matrix
+    1.000    0.000    0.000
+    0.111    1.410    0.000
+    0.222    0.219    1.704
+average time 4.43281e-05 s
+average time 0.00102775 s (including handle creation)
+RUN n: 25000 repeat: 10 dtype: d
+average time 0.395884 s
+average time 0.397762 s (including handle creation)
+```
+
