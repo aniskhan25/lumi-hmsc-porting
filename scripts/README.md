@@ -180,6 +180,7 @@ average time 0.397762 s (including handle creation)
 
 ### LUMI MAGMA
 
+```bash
 COMPILE:
 export SINGULARITY_BIND="/pfs,/scratch,/projappl,/project,/flash,/appl"
 singularity exec /appl/local/containers/sif-images/lumi-pytorch-rocm-5.5.1-python-3.10-pytorch-v2.0.1.sif hipcc -std=c++14 --offload-arch=gfx90a -O3 -I/opt/magma/include/ -lrocblas -lrocsolver -L/opt/magma/lib -Wl,-rpath,/opt/magma/lib -lmagma -o magma magma.cpp
@@ -201,4 +202,4 @@ average time 0.00167095 s (including handle creation)
 RUN n: 25000 repeat: 10 dtype: d
 average time 0.377096 s
 average time 0.378239 s (including handle creation)
-
+```
