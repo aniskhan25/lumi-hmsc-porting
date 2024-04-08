@@ -182,10 +182,9 @@ average time 0.397762 s (including handle creation)
 
 COMPILE:
 export SINGULARITY_BIND="/pfs,/scratch,/projappl,/project,/flash,/appl"
-singularity exec /appl/local/containers/sif-images/lumi-pytorch-rocm-5.5.1-python-3.10-pytorch-v2.0.1.sif bash -c "hipcc  -std=c++14 --offload-arch=gfx90a -O3  -I /opt/rocm/include/ -I /opt/rocm/rocsolver/include/ -I /opt/magma/include/ -lrocblas -lrocsolver -L/opt/magma/lib -lmagma -o magma  magma.cpp"
+singularity exec /appl/local/containers/sif-images/lumi-pytorch-rocm-5.5.1-python-3.10-pytorch-v2.0.1.sif bash -c "hipcc  -std=c++14 --offload-arch=gfx90a -O3  -I /opt/rocm/include/ -I /opt/rocm/rocsolver/include/ -I /opt/magma/include/ -lrocblas -lrocsolver -L/opt/magma/lib -Wl,-rpath,/opt/magma/lib -lmagma -o magma  magma.cpp"
 
 RUN:
-export SINGULARITYENV_LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/opt/magma/lib
 srun -p dev-g --nodes=1 --ntasks-per-node=1 --mem=32G --gpus-per-node=1 -t 00:15:00 singularity exec /appl/local/containers/sif-images/lumi-pytorch-rocm-5.5.1-python-3.10-pytorch-v2.0.1.sif ./magma 3,25000 10
 
 RUN n: 3 repeat: 10 dtype: d
