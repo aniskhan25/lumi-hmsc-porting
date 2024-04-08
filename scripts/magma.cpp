@@ -39,13 +39,10 @@
 #ifdef CUDA
 
 #include <cuda_runtime.h>
-#include <cusolverDn.h>
 
 #else
 
 #include <hip/hip_runtime.h>
-#include "rocblas.h"
-#include "rocsolver.h"
 
 #define cudaError_t                           hipError_t
 #define cudaSuccess                           hipSuccess
@@ -66,16 +63,6 @@
 #define cudaStreamNonBlocking                 hipStreamNonBlocking
 #define cudaStreamCreateWithFlags             hipStreamCreateWithFlags
 
-#define cusolverStatus_t                      rocblas_status
-#define CUSOLVER_STATUS_SUCCESS               rocblas_status_success
-#define cublasFillMode_t                      rocblas_fill
-#define CUBLAS_FILL_MODE_LOWER                rocblas_fill_lower
-#define CUBLAS_FILL_MODE_UPPER                rocblas_fill_upper
-#define cusolverDnHandle_t                    rocblas_handle
-#define cusolverDnCreate                      rocblas_create_handle
-#define cusolverDnDestroy                     rocblas_destroy_handle
-#define cusolverDnSetStream                   rocblas_set_stream
-
 #endif
 
 // CUDA API error checking
@@ -85,16 +72,6 @@
         if (err_ != cudaSuccess) {                                                                 \
             printf("CUDA error %d at %s:%d\n", err_, __FILE__, __LINE__);                          \
             throw std::runtime_error("CUDA error");                                                \
-        }                                                                                          \
-    } while (0)
-
-// cusolver API error checking
-#define CUSOLVER_CHECK(err)                                                                        \
-    do {                                                                                           \
-        cusolverStatus_t err_ = (err);                                                             \
-        if (err_ != CUSOLVER_STATUS_SUCCESS) {                                                     \
-            printf("cusolver error %d at %s:%d\n", err_, __FILE__, __LINE__);                      \
-            throw std::runtime_error("cusolver error");                                            \
         }                                                                                          \
     } while (0)
 
@@ -114,40 +91,11 @@ void print_matrix(const int &n, const std::vector<T> &A) {
 }
 
 
-#ifdef CUDA
-template <typename T>
-cudaDataType cusolver_dtype;
-
-template<>
-cudaDataType cusolver_dtype<float> = CUDA_R_32F;
-
-template<>
-cudaDataType cusolver_dtype<double> = CUDA_R_64F;
-#else
-template <typename T>
-rocblas_status (*rocsolver_potrf)(rocblas_handle, const rocblas_fill, const int, T*, const int, int*);
-
-template<>
-rocblas_status (*rocsolver_potrf<float>)(rocblas_handle, const rocblas_fill, const int, float*, const int, int*) = &rocsolver_spotrf;
-
-template<>
-rocblas_status (*rocsolver_potrf<double>)(rocblas_handle, const rocblas_fill, const int, double*, const int, int*) = &rocsolver_dpotrf;
-#endif
-
-
 template<typename T>
 struct Calculator {
     cudaStream_t stream = NULL;
-    cusolverDnHandle_t handle = NULL;
     int info = 0;
     int *d_info = nullptr;
-#ifdef CUDA
-    cusolverDnParams_t params = NULL;
-    size_t d_work_size = 0;
-    void *d_work = nullptr;
-    size_t h_work_size = 0;
-    void *h_work = nullptr;
-#endif
     int n;
     int lda;
     magma_uplo_t uplo;
@@ -155,36 +103,12 @@ struct Calculator {
     Calculator(int n, magma_uplo_t uplo) : n{n}, lda{n}, uplo{uplo} {
         // Create handlers etc
         CUDA_CHECK(cudaStreamCreateWithFlags(&stream, cudaStreamNonBlocking));
-        CUSOLVER_CHECK(cusolverDnCreate(&handle));
-        CUSOLVER_CHECK(cusolverDnSetStream(handle, stream));
         CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&d_info), sizeof(int)));
-#ifdef CUDA
-        CUSOLVER_CHECK(cusolverDnCreateParams(&params));
-
-        // Build working space
-        CUSOLVER_CHECK(cusolverDnXpotrf_bufferSize(
-            handle, params, uplo, n, cusolver_dtype<T>, NULL, lda,
-            cusolver_dtype<T>, &d_work_size, &h_work_size));
-
-        CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&d_work), d_work_size));
-
-        if (0 < h_work_size) {
-            h_work = reinterpret_cast<void *>(malloc(h_work_size));
-            if (h_work == nullptr) {
-                throw std::runtime_error("Error: h_work not allocated.");
-            }
-        }
-#endif
     }
 
     ~Calculator() {
         // Free resources
-#ifdef CUDA
-        free(h_work);
-        cudaFree(d_work);
-#endif
         cudaFree(d_info);
-        cusolverDnDestroy(handle);
         cudaStreamDestroy(stream);
     }
 
@@ -196,19 +120,12 @@ struct Calculator {
         CUDA_CHECK(cudaMemcpyAsync(d_A, d_A_input, sizeof(T) * n*n, cudaMemcpyDeviceToDevice, stream));
 
         // Cholesky factorization
-#ifdef CUDA
-        CUSOLVER_CHECK(cusolverDnXpotrf(handle, params, uplo, n, cusolver_dtype<T>,
-                                        d_A, lda, cusolver_dtype<T>, d_work, d_work_size,
-                                        h_work, h_work_size, d_info));
-#else
         // This function allows to select GPU only and specify block size. I found 1024 and GPU native to be the best. List of available functions are here: https://icl.utk.edu/projectsfiles/magma/doxygen/group__magma__potrf.html
         magma_dpotrf_expert_gpu(uplo, n, d_A, lda, d_info, 1024, MagmaNative); 
         
         if (*d_info != 0) {
             throw std::runtime_error("MAGMA error");
         }
-
-#endif
 
         CUDA_CHECK(cudaMemcpyAsync(&info, d_info, sizeof(int), cudaMemcpyDeviceToHost, stream));
 
