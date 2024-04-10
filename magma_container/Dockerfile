@@ -41,9 +41,8 @@ ENV PATH=/conda/env/bin:$PATH \
 
 # based on https://github.com/sfantao/lumi-containers/blob/main/pytorch/build-rocm-5.5.1-python-3.10-pytorch-v2.0.1.docker
 RUN mkdir -p /opt/magma && \
-    git clone https://bitbucket.org/icl/magma /opt/magma-build && \
+    git clone --depth 1 --branch v2.8.0 https://bitbucket.org/icl/magma /opt/magma-build && \
     cd /opt/magma-build && \
-    git checkout -b mydev c62d700d880c7283b33fb1d615d62fc9c7f7ca21 && \
     \
     cp make.inc-examples/make.inc.mkl-gcc make.inc && \
     echo 'LIBDIR += -L$(MKLROOT)/lib' >> make.inc && \
