@@ -47,6 +47,7 @@ RUN mkdir -p /opt/magma && \
     \
     cp make.inc-examples/make.inc.mkl-gcc make.inc && \
     echo 'LIBDIR += -L$(MKLROOT)/lib' >> make.inc && \
+    echo 'LIB += -Wl,--enable-new-dtags -Wl,--rpath,\$(MKLROOT)/lib -Wl,--rpath,/opt/magma/lib' >> make.inc ; \
     nice make lib/libmagma.so GPU_TARGET=Ampere MKLROOT=/conda/env CUDADIR=/usr/local/cuda -j8 && \
     cp -rf include lib /opt/magma && \
     cd / && rm -rf /opt/magma-build
