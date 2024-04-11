@@ -203,3 +203,14 @@ RUN n: 25000 repeat: 10 dtype: d
 average time 0.377096 s
 average time 0.378239 s (including handle creation)
 ```
+
+
+### Mahti MAGMA
+
+```bash
+export SINGULARITY_BIND="/scratch,/projappl,/appl"
+singularity exec -B /local_scratch ~/magma.sif nvcc -DCUDA -O3 -arch=sm_80 -I/opt/magma/include/ -L/opt/magma/lib -lmagma -Xcompiler \"-Wl,-rpath,/opt/magma/lib\" -o magma magma.cpp
+
+srun -p gputest --nodes=1 --ntasks-per-node=1 --mem=32G --gres=gpu:a100:1 -t 0:15:00 singularity exec --nv ~/magma.sif ./magma 3,25000 10
+
+```
