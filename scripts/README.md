@@ -214,3 +214,19 @@ singularity exec -B /local_scratch ~/magma.sif nvcc -DCUDA -O3 -arch=sm_80 -I/op
 srun -p gputest --nodes=1 --ntasks-per-node=1 --mem=32G --gres=gpu:a100:1 -t 0:15:00 singularity exec --nv ~/magma.sif ./magma 3,25000 10
 
 ```
+
+Compiling magma natively:
+```bash
+ml cuda/11.5.0
+
+git clone --branch v2.8.0 https://bitbucket.org/icl/magma
+cd magma
+grep -rl '^#!/usr/bin/env python$' . | xargs sed -i 's|^#!/usr/bin/env python$|#!/usr/bin/env python3|g'
+cp make.inc-examples/make.inc.openblas make.inc
+
+# Launch interactive shell on a node
+srun -p test --nodes=1 --ntasks-per-node=1 --cpus-per-task=128 --exclusive -t 1:00:00 --pty bash
+
+export TMPDIR=/dev/shm
+make -j128 lib/libmagma.so GPU_TARGET=Ampere OPENBLASDIR=$OPENBLAS_INSTALL_ROOT CUDADIR=$CUDA_INSTALL_ROOT
+```
