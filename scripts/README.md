@@ -230,3 +230,25 @@ srun -p test --nodes=1 --ntasks-per-node=1 --cpus-per-task=128 --exclusive -t 1:
 export TMPDIR=/dev/shm
 make -j128 lib/libmagma.so GPU_TARGET=Ampere OPENBLASDIR=$OPENBLAS_INSTALL_ROOT CUDADIR=$CUDA_INSTALL_ROOT
 ```
+
+
+### A100 MAGMA
+Using CUDA/12.1.0 and gcc/12.1.0, installed with conda MKL backend according to Samuel's instructions.
+
+```bash
+RUN n: 3 repeat: 10 dtype: d
+Input matrix
+    1.000    0.111    0.222
+    0.111    2.000    0.333
+    0.222    0.333    3.000
+Output matrix
+    1.000    0.000    0.000
+    0.111    1.410    0.000
+    0.222    0.219    1.704
+average time 5.81113e-05 s
+average time 0.00155553 s (including handle creation)
+RUN n: 25000 repeat: 10 dtype: d
+average time 0.324008 s
+average time 0.327149 s (including handle creation)
+```
+
