@@ -1,0 +1,24 @@
+Mostly created with information from here.
+https://www.tensorflow.org/guide/create_op
+
+
+If you get an import error with "third_party..." Have to simlink cuda lib to the error path at first. Something like this
+mkdir -p /usr/local/lib/python3.6/dist-packages/tensorflow/include/third_party/gpus/cuda/include && cp -r /usr/local/cuda/targets/x86_64-linux/include/* /usr/local/lib/python3.6/dist-packages/tensorflow/include/third_party/gpus/cuda/include
+
+I had to compile with --expt-relaxed-constexpr
+Also Add magma to both compilations
+
+
+Compiling for A100 locally was like this
+TF_CFLAGS=( $(python -c 'import tensorflow as tf; print(" ".join(tf.sysconfig.get_compile_flags()))') )
+TF_LFLAGS=( $(python -c 'import tensorflow as tf; print(" ".join(tf.sysconfig.get_link_flags()))') )
+nvcc -std=c++14 -c -o kernel_example.cu.o kernel_example.cu.cc   ${TF_CFLAGS[@]} -D GOOGLE_CUDA=1 -x cu -Xcompiler -fPIC --expt-relaxed-constexpr -Iinclude -Llib -lmagma -I<magma_path>include -L<magma_path>/lib
+g++ -std=c++14 -shared -o cuda_op_kernel.so kernel_example.cc   kernel_example.cu.o ${TF_CFLAGS[@]} -fPIC -lcudart ${TF_LFLAGS[@]} -L /gpfs/space/software/cluster_software/spack/linux-centos7-x86_64/gcc-9.2.0/cuda-11.7.0-hfqzohhoijx3mhqdh2w3mvycmhbrcner/lib64/ -I<magma_path>include -L<magma_path>lib -lmagma -D GOOGLE_CUDA=1
+
+Loading and using the custom operator is shown in the python script. It works fine until 5000 matrix size, but after that there are some custream issues that come up. Might not be the case for AMD. Still I would look into using the MAGMA functions for this. Perhaps there is still some performance to be gained. 
+
+I was also looking at this MAGMA example here for the data transfer and other options. https://github.com/CEED/MAGMA/blob/master/example/example_v2.c
+Also in the above link there is this line, which might be worth something.
+magma_int_t ldda = magma_roundup( n, 32 );  // round up to multiple of 32 for best GPU performance
+
+I was a bit confused by the dimensions of the matrix, lda and the n variable. MAGMA differentiates between setmatrix and setvector for example, which all have quite a few variables there.https://icl.utk.edu/projectsfiles/magma/doxygen/group__magma__setmatrix.html
