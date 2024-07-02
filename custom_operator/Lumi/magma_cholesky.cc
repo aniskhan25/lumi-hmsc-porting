@@ -1,4 +1,5 @@
 #include "magma_cholesky.h"
+#include <iostream>
 
 #include "tensorflow/core/framework/op.h"
 #include "tensorflow/core/framework/shape_inference.h"
@@ -29,20 +30,28 @@ class MagmaCholeskyOp : public OpKernel {
     // Grab the input tensor
     //
     const Tensor& input_tensor = context->input(0);
+    int input_dims = input_tensor.dims();
 
+    OP_REQUIRES(context, input_dims == 3 || input_dims == 2 ,
+                errors::InvalidArgument("Input tensor must be 2 or 3-dimensional"));
+ //   OP_REQUIRES(context, input_tensor.NumElements() <= tensorflow::kint32max,errors::InvalidArgument("Too many elements in tensor"));
+
+    int num_matrices = 1;
+    if (input_dims==3){
+    	num_matrices = input_tensor.dim_size(0);
+    }
+    int n = input_tensor.dim_size(1);
     Tensor* output_tensor = NULL;
     OP_REQUIRES_OK(context, context->allocate_output(0, input_tensor.shape(),
                                                      &output_tensor));
+//    context->set_output(0, input_tensor);
 
-
-    // Do the computation.
-    OP_REQUIRES(context, input_tensor.NumElements() <= tensorflow::kint32max,
-                errors::InvalidArgument("Too many elements in tensor"));
     MagmaCholeskyFunctor<Device, T>()(
         context->eigen_device<Device>(),
-        static_cast<int>(input_tensor.NumElements()),
+	n,
         input_tensor.flat<T>().data(),
-        output_tensor->flat<T>().data());	
+        output_tensor->flat<T>().data(),
+        num_matrices);
   }
 };
 
