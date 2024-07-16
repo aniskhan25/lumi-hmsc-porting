@@ -33,7 +33,6 @@ void MagmaCholeskyFunctor<GPUDevice, T>::operator()(
   hipMalloc(reinterpret_cast<void **>(&d_info), sizeof(int) * num_matrices);
   hipMemcpy(out, in, sizeof(T) * matrix_size*num_matrices, hipMemcpyDeviceToDevice);
   hipDeviceSynchronize();
-  std::cout << num_matrices << " matrices\n";
   
   
   for (int i = 0; i < num_matrices; i++) {
@@ -66,7 +65,6 @@ void MagmaCholeskyFunctor<GPUDevice, T>::operator()(
   std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
   std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
-
 };
 
 // Explicitly instantiate functors for the types of OpKernels registered.

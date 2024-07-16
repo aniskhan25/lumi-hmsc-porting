@@ -2,7 +2,7 @@ import sys
 import numpy as np
 import tensorflow as tf
 import timeit
-from Lumi import cholesky
+#from Lumi import cholesky
 # Usage:
 # python cholesky_benchmark.py MATRIX_SIZES_AS_CSV N_REPEATS
 #
