@@ -87,3 +87,60 @@ python3 custom_operator_cholesky.py 10,100 10 double true
 # The command below will give input to the operator as 10 separate matrices
 python3 custom_operator_cholesky.py 10,100 10 double false
 ```
+
+## Using the operation in HMSC 
+
+To use the library in HMSC, we currently manually replace specific cholesky function calls with the Magma implementation in the HMSC source. The calls we replace are:
+
+```
+https://github.com/aniskhan25/hmsc-hpc/blob/3dfb9310f4cc238a41031e232c8e9389ddfc16e6/hmsc/updaters/updateBetaLambda.py#L120
+https://github.com/aniskhan25/hmsc-hpc/blob/3dfb9310f4cc238a41031e232c8e9389ddfc16e6/hmsc/updaters/updateEta.py#L118
+https://github.com/aniskhan25/hmsc-hpc/blob/3dfb9310f4cc238a41031e232c8e9389ddfc16e6/hmsc/updaters/updateEta.py#L133
+https://github.com/aniskhan25/hmsc-hpc/blob/3dfb9310f4cc238a41031e232c8e9389ddfc16e6/hmsc/updaters/updateEta.py#L137
+https://github.com/aniskhan25/hmsc-hpc/blob/3dfb9310f4cc238a41031e232c8e9389ddfc16e6/hmsc/updaters/updateBetaLambda.py#L94
+```
+
+To run HMSC using the modified Cholesky, first follow the above instructions to build `magma_cholesky.so`.
+
+Then, in each file referenced above, load the custom `.so` by adding the following code:
+
+```
+magma_lib=tf.load_op_library('/path/to/magma_cholesky.so')
+```
+
+And then modify the referenced function calls above, for example:
+
+```
+LiUEta = magma_lib.magma_cholesky(iUEta)
+```
+
+Once the modifications are complete, launch the container as above while in the HMSC base directory (as `$PWD` will be mounted automatically - if you launch from some other directory you will need to bind mount the HMSC directory so you can access the code).
+
+Install the pip requirements for HMSC
+
+TODO: The below requirements shoudl work, but need to double check installed versions of all these packages once LUMI upgrade is complete
+```
+tensorflow-probability==0.19.0
+MySQL_python==1.2.2 [TODO: double check - is this one necessary?]
+numpy==1.22.4
+scipy==1.13
+ujson
+pandas
+pyreadr
+```
+Exit the container, then you should be able to run HSMC via interactive shell as above:
+
+```bash
+# Get an interactive shell
+srun -psmall-g --gpus 1 --pty bash
+
+singularity shell /appl/local/containers/sif-images/lumi-pytorch-rocm-5.5.1-python-3.10-pytorch-v2.0.1.sif
+$WITH_CONDA 
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/magma/lib
+
+N_SAMPLES=...
+N_TRANS=...
+N_THIN=...
+
+python3 -m hmsc.run_gibbs_sampler --input examples/big_spatial/init_1fu_ns622_ny01600_chain01.rds --output $PWD/output.rds --samples N_SAMPLES --transient N_TRANS --thin N_THIN --verbose 100
+```
