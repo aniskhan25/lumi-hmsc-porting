@@ -6,7 +6,7 @@ See [cholesky.cpp](cholesky.cpp).
 
 ### LUMI (MI250X / 1 GCD)
 
-#### Available rocm versions
+#### Available rocm versions before Sep 2024 upgrade
 
 ```bash
 ml rocm/5.2.3
@@ -56,7 +56,33 @@ average time 1.22292 s
 average time 1.24275 s (including handle creation)
 ```
 
-#### Singularity rocm versions
+#### Available rocm versions after Sep 2024 upgrade
+
+```bash
+ml rocm/6.0.3
+
+hipcc -std=c++14 --offload-arch=gfx90a -O3 -lrocblas -lrocsolver cholesky.cpp
+
+srun -p dev-g --nodes=1 --ntasks-per-node=1 --mem=32G --gpus-per-node=1 -t 00:15:00 ./a.out 3,25000 10
+
+RUN n: 3 repeat: 10 dtype: d
+Input matrix
+    1.000    0.111    0.222
+    0.111    2.000    0.333
+    0.222    0.333    3.000
+Output matrix
+    1.000    0.000    0.000
+    0.111    1.410    0.000
+    0.222    0.219    1.704
+average time 7.26577e-05 s
+average time 0.000550958 s (including handle creation)
+RUN n: 25000 repeat: 10 dtype: d
+average time 1.24172 s
+average time 1.24306 s (including handle creation)
+```
+
+
+#### Singularity rocm versions before Sep 2024 upgrade
 
 Installing:
 ```bash
@@ -123,6 +149,33 @@ average time 0.000627651 s (including handle creation)
 RUN n: 25000 repeat: 10 dtype: d
 average time 1.2161 s
 average time 1.21686 s (including handle creation)
+```
+
+#### Singularity rocm versions after Sep 2024 upgrade
+
+```bash
+export SINGULARITY_CACHEDIR=$PWD/singularity_cache
+singularity pull docker://docker.io/rocm/tensorflow:rocm6.2-py3.9-tf2.16-dev
+export SINGULARITY_BIND="/pfs,/scratch,/projappl,/project,/flash,/appl"
+
+singularity exec tensorflow_rocm6.2-py3.9-tf2.16-dev.sif hipcc -std=c++14 --offload-arch=gfx90a -O3 -lrocblas -lrocsolver cholesky.cpp
+
+srun -p dev-g --nodes=1 --ntasks-per-node=1 --mem=32G --gpus-per-node=1 -t 00:15:00 singularity exec tensorflow_rocm6.2-py3.9-tf2.16-dev.sif ./a.out 3,25000 10
+
+RUN n: 3 repeat: 10 dtype: d
+Input matrix
+    1.000    0.111    0.222
+    0.111    2.000    0.333
+    0.222    0.333    3.000
+Output matrix
+    1.000    0.000    0.000
+    0.111    1.410    0.000
+    0.222    0.219    1.704
+average time 4.46124e-05 s
+average time 0.00053811 s (including handle creation)
+RUN n: 25000 repeat: 10 dtype: d
+average time 0.754646 s
+average time 0.755378 s (including handle creation)
 ```
 
 
