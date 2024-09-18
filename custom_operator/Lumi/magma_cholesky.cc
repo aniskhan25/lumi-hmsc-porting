@@ -71,7 +71,7 @@ class MagmaCholeskyOp : public OpKernel {
       MagmaCholeskyOp<GPUDevice, T>);
 // REGISTER_GPU(float);
 REGISTER_GPU(double);
-
+#endif
 // Python initialization function
 extern "C" PyMODINIT_FUNC PyInit_magma_cholesky(void) {
     static PyModuleDef module_def = {
