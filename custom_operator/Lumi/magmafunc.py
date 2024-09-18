@@ -3,7 +3,7 @@ import tensorflow as tf
 # Load the custom operator library
 magma_lib = tf.load_op_library('./magma_cholesky.so')
 
-def cholesky(input_tensor):
+def M_cholesky(input_tensor):
     """
     Applies the custom Cholesky decomposition operator on the input tensor.
 

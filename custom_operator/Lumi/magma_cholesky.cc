@@ -4,6 +4,7 @@
 #include "tensorflow/core/framework/op.h"
 #include "tensorflow/core/framework/shape_inference.h"
 #include "tensorflow/core/framework/op_kernel.h"
+#include <Python.h>
 
 using namespace tensorflow;
 
@@ -71,4 +72,21 @@ class MagmaCholeskyOp : public OpKernel {
 // REGISTER_GPU(float);
 REGISTER_GPU(double);
 
-#endif
+// Python initialization function
+extern "C" PyMODINIT_FUNC PyInit_magma_cholesky(void) {
+    static PyModuleDef module_def = {
+        PyModuleDef_HEAD_INIT,
+        "magma_cholesky",
+        nullptr,
+        -1,
+        nullptr,
+    };
+
+    PyObject* module = PyModule_Create(&module_def);
+    if (module == nullptr) {
+        return nullptr;
+    }
+
+    return module;
+}
+

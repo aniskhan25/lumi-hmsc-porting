@@ -2,6 +2,7 @@ import sys
 import numpy as np
 import tensorflow as tf
 import timeit
+from magmafunc import M_cholesky
 #from Lumi import cholesky
 # Usage:
 # python cholesky_benchmark.py MATRIX_SIZES_AS_CSV N_REPEATS
@@ -19,7 +20,7 @@ import timeit
 
 def chol_tf(A, dtype=tf.double):
     def run():
-        return cholesky(A)
+        return M_cholesky(A)
     return run
 
 np.set_printoptions(precision=3, suppress=True, linewidth=200, floatmode='fixed')
@@ -30,8 +31,8 @@ if __name__ == '__main__':
     for gpu in gpus:
         tf.config.experimental.set_memory_growth(gpu, True)
         
-    magma_lib=tf.load_op_library('./magma_cholesky.so')
-    cholesky = magma_lib.magma_cholesky
+#    magma_lib=tf.load_op_library('./magma_cholesky.so')
+#    cholesky = magma_lib.magma_cholesky
 
     matrix_sizes, times, precision, arr_in = sys.argv[1:]
     do_random = False

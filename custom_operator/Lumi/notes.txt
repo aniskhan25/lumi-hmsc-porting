@@ -10,9 +10,8 @@ Compiling these tests:
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/magma/lib
 TF_CFLAGS=( $(python -c 'import tensorflow as tf; print(" ".join(tf.sysconfig.get_compile_flags()))') )
 TF_LFLAGS=( $(python -c 'import tensorflow as tf; print(" ".join(tf.sysconfig.get_link_flags()))') )
-hipcc -std=c++14 -c -o magma_cholesky.cu.o magma_cholesky.cu.cc   ${TF_CFLAGS[@]} -D EIGEN_USE_HIP=1 -D TENSORFLOW_USE_ROCM=1 -fPIC -I/opt/magma/include -L/opt/magma/lib -I/opt
-gcc-10 -std=c++14 -shared -o magma_cholesky.so magma_cholesky.cc   magma_cholesky.cu.o ${TF_CFLAGS[@]} -fPIC  ${TF_LFLAGS[@]} -I/opt/magma/include -L/opt/magma/lib -lmagma -D TENSORFLOW_USE_ROCM=1
-
+hipcc -std=c++14 -c -o magma_cholesky.cu.o magma_cholesky.cu.cc   ${TF_CFLAGS[@]} -D EIGEN_USE_HIP=1 -D TENSORFLOW_USE_ROCM=1 -fPIC -I/scratch/project_462000008/tiks/MAGMA/include -L/scratch/project_462000008/tiks/MAGMA/lib -I/opt
+gcc -std=c++14 -shared -o magma_cholesky.so magma_cholesky.cc   magma_cholesky.cu.o ${TF_CFLAGS[@]} -fPIC  ${TF_LFLAGS[@]} -I/scratch/project_462000008/tiks/MAGMA/include -L/scratch/project_462000008/tiks/MAGMA/lib -lmagma -D TENSORFLOW_USE_ROCM=1 $(python3-config --includes)
 
 RUNNING HMSC:
 pip install tensorflow-probability==0.19.0
