@@ -43,8 +43,8 @@
 #else
 
 #include <hip/hip_runtime.h>
-#include "rocblas.h"
-#include "rocsolver.h"
+#include "rocblas/rocblas.h"
+#include "rocsolver/rocsolver.h"
 
 #define cudaError_t                           hipError_t
 #define cudaSuccess                           hipSuccess
