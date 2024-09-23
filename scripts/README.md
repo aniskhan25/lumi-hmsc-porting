@@ -200,6 +200,70 @@ average time 0.757435 s
 average time 0.758504 s (including handle creation)
 ```
 
+Development version of rocsolver from https://github.com/ROCm/rocSOLVER/pull/710 and https://github.com/EdDAzevedo/rocSOLVER/pull/11 :
+
+```bash
+# Build development version of rocsolver on local machine:
+git clone https://github.com/ROCmSoftwarePlatform/rocSOLVER.git
+cd rocSOLVER
+git remote add tfalders https://github.com/tfalders/rocSOLVER.git
+git fetch tfalders
+git checkout recursive_cholesky_review  # commit 87ade8da8be10889fb2886325654086bbf07d0c4 at the time of testing
+
+docker run -it --rm -v "$HOME/work:$HOME/work:Z" -w "$PWD" docker.io/rocm/dev-ubuntu-22.04:6.2-complete
+# In container:
+apt-get update
+apt-get install cmake libfmt-dev
+sed -i 's/-j$(nproc)/-j6/' install.sh
+./install.sh -a gfx90a --no-sparse --cmake-arg -DROCSOLVER_EMBED_FMT=OFF
+exit  # exit container
+
+# Copy files to lumi
+rsync -av build/release/rocsolver-install lumi:.../rocSOLVER-6.2-dev
+
+# Compile cholesky.cpp on LUMI:
+singularity exec dev-ubuntu-20.04_6.2-complete.sif hipcc -std=c++14 --offload-arch=gfx90a -O3 -L.../rocSOLVER-6.2-dev/rocsolver-install/lib -lrocblas -lrocsolver -Wl,-rpath,.../rocSOLVER-6.2-dev/rocsolver-install/lib cholesky.cpp
+
+srun -p dev-g --nodes=1 --ntasks-per-node=1 --mem=32G --gpus-per-node=1 -t 00:15:00 singularity exec /scratch/project_465000915/rossituo/rocSOLVER/dev-ubuntu-20.04_6.2-complete.sif ./a.out 3,25000 10
+
+srun: job 8033560 queued and waiting for resources
+srun: job 8033560 has been allocated resources
+RUN n: 3 repeat: 10 dtype: d
+Input matrix
+   1.000000e+00   1.111111e-01   2.222222e-01
+   1.111111e-01   2.000000e+00   3.333333e-01
+   2.222222e-01   3.333333e-01   3.000000e+00
+Output matrix
+   1.000000e+00   0.000000e+00   0.000000e+00
+   1.111111e-01   1.409842e+00   0.000000e+00
+   2.222222e-01   2.189196e-01   1.703729e+00
+average time 4.62205e-05 s
+average time 0.000553244 s (including handle creation)
+RUN n: 25000 repeat: 10 dtype: d
+Input matrix
+   1.000000e+00   1.600000e-09   3.200000e-09   4.800000e-09            ...   3.999360e-05   3.999520e-05   3.999680e-05   3.999840e-05
+   1.600000e-09   2.000000e+00   4.800000e-09   6.400000e-09            ...   3.999520e-05   3.999680e-05   3.999840e-05   4.000000e-05
+   3.200000e-09   4.800000e-09   3.000000e+00   8.000000e-09            ...   3.999680e-05   3.999840e-05   4.000000e-05   4.000160e-05
+   4.800000e-09   6.400000e-09   8.000000e-09   4.000000e+00            ...   3.999840e-05   4.000000e-05   4.000160e-05   4.000320e-05
+            ...            ...            ...            ...            ...            ...            ...            ...            ...
+   3.999360e-05   3.999520e-05   3.999680e-05   3.999840e-05            ...   2.499700e+04   7.998880e-05   7.999040e-05   7.999200e-05
+   3.999520e-05   3.999680e-05   3.999840e-05   4.000000e-05            ...   7.998880e-05   2.499800e+04   7.999200e-05   7.999360e-05
+   3.999680e-05   3.999840e-05   4.000000e-05   4.000160e-05            ...   7.999040e-05   7.999200e-05   2.499900e+04   7.999520e-05
+   3.999840e-05   4.000000e-05   4.000160e-05   4.000320e-05            ...   7.999200e-05   7.999360e-05   7.999520e-05   2.500000e+04
+Output matrix
+   1.000000e+00   0.000000e+00   0.000000e+00   0.000000e+00            ...   0.000000e+00   0.000000e+00   0.000000e+00   0.000000e+00
+   1.600000e-09   1.414214e+00   0.000000e+00   0.000000e+00            ...   0.000000e+00   0.000000e+00   0.000000e+00   0.000000e+00
+   3.200000e-09   3.394113e-09   1.732051e+00   0.000000e+00            ...   0.000000e+00   0.000000e+00   0.000000e+00   0.000000e+00
+   4.800000e-09   4.525483e-09   4.618802e-09   2.000000e+00            ...   0.000000e+00   0.000000e+00   0.000000e+00   0.000000e+00
+            ...            ...            ...            ...            ...            ...            ...            ...            ...
+   3.999360e-05   2.828088e-05   2.309216e-05   1.999920e-05            ...   1.581044e+02   0.000000e+00   0.000000e+00   0.000000e+00
+   3.999520e-05   2.828201e-05   2.309309e-05   2.000000e-05            ...   5.057904e-07   1.581076e+02   0.000000e+00   0.000000e+00
+   3.999680e-05   2.828314e-05   2.309401e-05   2.000080e-05            ...   5.058005e-07   5.058005e-07   1.581107e+02   0.000000e+00
+   3.999840e-05   2.828427e-05   2.309493e-05   2.000160e-05            ...   5.058106e-07   5.058106e-07   5.058106e-07   1.581139e+02
+average time 0.483608 s
+average time 0.48529 s (including handle creation)
+```
+
 
 ### Puhti (V100)
 
