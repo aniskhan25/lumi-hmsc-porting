@@ -99,15 +99,30 @@
     } while (0)
 
 
-constexpr int N_MAX_PRINT = 13;
+constexpr int N_MAX_PRINT = 3;
 
 
 template <typename T>
 void print_matrix(const int &n, const std::vector<T> &A) {
     // Print transpose
     for (int i = 0; i < n; i++) {
+        if (N_MAX_PRINT < i && i < n - N_MAX_PRINT - 1) {
+            if (i == N_MAX_PRINT + 1) {
+                for (int j = 0; j < (N_MAX_PRINT + 1) * 2 + 1; j++) {
+                    std::printf(" %14s", "...");
+                }
+                std::cout << "\n";
+            }
+            continue;
+        }
         for (int j = 0; j < n; j++) {
-            std::printf(" %8.3f", A[j * n + i]);
+            if (N_MAX_PRINT < j && j < n - N_MAX_PRINT - 1) {
+                if (j == N_MAX_PRINT + 1) {
+                    std::printf(" %14s", "...");
+                }
+                continue;
+            }
+            std::printf(" %14.6e", A[j * n + i]);
         }
         std::cout << "\n";
     }
@@ -245,10 +260,8 @@ void run(int n, int repeat) {
         A[i * n + i] = i + 1;
     }
 
-    if (n < N_MAX_PRINT) {
-        std::cout << "Input matrix" << std::endl;
-        print_matrix(n, A);
-    }
+    std::cout << "Input matrix" << std::endl;
+    print_matrix(n, A);
 
     // Copy array to device
     T *d_A = nullptr;
@@ -263,17 +276,15 @@ void run(int n, int repeat) {
         // Warm up
         calc.calculate(d_A, L.data());
 
-        if (n < N_MAX_PRINT) {
-            // Zero lower half
-            for (int i = 0; i < n; i++) {
-                for (int j = 0; j < i; j++) {
-                    L[i * n + j] = 0;
-                }
+        // Zero lower half
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < i; j++) {
+                L[i * n + j] = 0;
             }
-
-            std::cout << "Output matrix" << std::endl;
-            print_matrix(n, L);
         }
+
+        std::cout << "Output matrix" << std::endl;
+        print_matrix(n, L);
 
         // Run timing
         auto t0 = std::chrono::high_resolution_clock::now();
