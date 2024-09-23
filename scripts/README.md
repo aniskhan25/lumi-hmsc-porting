@@ -391,3 +391,55 @@ average time 0.324008 s
 average time 0.327149 s (including handle creation)
 ```
 
+# Tensorflow with rocm 6.2 container
+
+```bash
+export SINGULARITY_CACHEDIR=$PWD/singularity_cache
+singularity pull docker://docker.io/rocm/tensorflow:rocm6.2-py3.9-tf2.16-dev
+export SINGULARITY_BIND="/pfs,/scratch,/projappl,/project,/flash,/appl"
+
+singularity exec $PWD/tensorflow_rocm6.2-py3.9-tf2.16-dev.sif python3 -m venv --system-site-packages venv-rocm6.2-py3.9-tf2.16
+
+# source venv-rocm6.2-py3.9-tf2.16/bin/activate # this is not working correctly; use alias below instead
+alias python3="singularity exec $PWD/tensorflow_rocm6.2-py3.9-tf2.16-dev.sif $PWD/venv-rocm6.2-py3.9-tf2.16/bin/python3"
+
+python3 -m pip install tensorflow-probability==0.24.0
+python3 -m pip install pyreadr ujson
+python3 -m pip install --no-deps -e .  # assuming we are under hmsc-hpc git clone
+
+export TF_FORCE_GPU_ALLOW_GROWTH=true
+
+# alias not visible in srun; so this one is a bit hacky too
+srun -p dev-g --ntasks-per-node=1 --gpus-per-node=1 -t 0:15:00 ${BASH_ALIASES[python3]} -m hmsc.run_gibbs_sampler --input init_json_1fu_ns622_ny01600_chain01.rds --output output.rds --samples 10 --transient 10 --thin 10 --verbose 100
+
+Initializing TF graph
+retracing
+TF graph initialized in 12.9 sec
+Running TF Gibbs sampler for 1 chains with indices [0]
+
+ Computing chain 0
+iteration 100 / 110 saving 9
+ 1 chains completed in 48.9 sec
+
+ Whole Gibbs sampler elapsed 48.9
+done
+
+
+# Using dev version of rocsolver (see above; might have some issues):
+alias python3="singularity exec -B .../rocSOLVER-6.2-dev/rocsolver-install/lib/librocsolver.so.0.3:/opt/rocm-6.2.0/lib/librocsolver.so.0.2.60200 $PWD/tensorflow_rocm6.2-py3.9-tf2.16-dev.sif $PWD/venv-rocm6.2-py3.9-tf2.16/bin/python3"
+
+srun -p dev-g --ntasks-per-node=1 --gpus-per-node=1 -t 0:15:00 ${BASH_ALIASES[python3]} -m hmsc.run_gibbs_sampler --input init_json_1fu_ns622_ny01600_chain01.rds --output output.rds --samples 10 --transient 10 --thin 10 -
+-verbose 100
+
+Initializing TF graph
+retracing
+TF graph initialized in 12.8 sec
+Running TF Gibbs sampler for 1 chains with indices [0]
+
+ Computing chain 0
+iteration 100 / 110 saving 9
+ 1 chains completed in 39.2 sec
+
+ Whole Gibbs sampler elapsed 39.2
+done
+```
