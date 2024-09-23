@@ -155,27 +155,49 @@ average time 1.21686 s (including handle creation)
 
 ```bash
 export SINGULARITY_CACHEDIR=$PWD/singularity_cache
-singularity pull docker://docker.io/rocm/tensorflow:rocm6.2-py3.9-tf2.16-dev
+singularity pull docker://docker.io/rocm/dev-ubuntu-22.04:6.2-complete
 export SINGULARITY_BIND="/pfs,/scratch,/projappl,/project,/flash,/appl"
 
-singularity exec tensorflow_rocm6.2-py3.9-tf2.16-dev.sif hipcc -std=c++14 --offload-arch=gfx90a -O3 -lrocblas -lrocsolver cholesky.cpp
+singularity exec dev-ubuntu-20.04_6.2-complete.sif hipcc -std=c++14 --offload-arch=gfx90a -O3 -lrocblas -lrocsolver cholesky.cpp
 
-srun -p dev-g --nodes=1 --ntasks-per-node=1 --mem=32G --gpus-per-node=1 -t 00:15:00 singularity exec tensorflow_rocm6.2-py3.9-tf2.16-dev.sif ./a.out 3,25000 10
+srun -p dev-g --nodes=1 --ntasks-per-node=1 --mem=32G --gpus-per-node=1 -t 00:15:00 singularity exec dev-ubuntu-22.04_6.2-complete.sif ./a.out 3,25000 10
 
+srun: job 8033257 queued and waiting for resources
+srun: job 8033257 has been allocated resources
 RUN n: 3 repeat: 10 dtype: d
 Input matrix
-    1.000    0.111    0.222
-    0.111    2.000    0.333
-    0.222    0.333    3.000
+   1.000000e+00   1.111111e-01   2.222222e-01
+   1.111111e-01   2.000000e+00   3.333333e-01
+   2.222222e-01   3.333333e-01   3.000000e+00
 Output matrix
-    1.000    0.000    0.000
-    0.111    1.410    0.000
-    0.222    0.219    1.704
-average time 4.46124e-05 s
-average time 0.00053811 s (including handle creation)
+   1.000000e+00   0.000000e+00   0.000000e+00
+   1.111111e-01   1.409842e+00   0.000000e+00
+   2.222222e-01   2.189196e-01   1.703729e+00
+average time 4.2706e-05 s
+average time 0.000545893 s (including handle creation)
 RUN n: 25000 repeat: 10 dtype: d
-average time 0.754646 s
-average time 0.755378 s (including handle creation)
+Input matrix
+   1.000000e+00   1.600000e-09   3.200000e-09   4.800000e-09            ...   3.999360e-05   3.999520e-05   3.999680e-05   3.999840e-05
+   1.600000e-09   2.000000e+00   4.800000e-09   6.400000e-09            ...   3.999520e-05   3.999680e-05   3.999840e-05   4.000000e-05
+   3.200000e-09   4.800000e-09   3.000000e+00   8.000000e-09            ...   3.999680e-05   3.999840e-05   4.000000e-05   4.000160e-05
+   4.800000e-09   6.400000e-09   8.000000e-09   4.000000e+00            ...   3.999840e-05   4.000000e-05   4.000160e-05   4.000320e-05
+            ...            ...            ...            ...            ...            ...            ...            ...            ...
+   3.999360e-05   3.999520e-05   3.999680e-05   3.999840e-05            ...   2.499700e+04   7.998880e-05   7.999040e-05   7.999200e-05
+   3.999520e-05   3.999680e-05   3.999840e-05   4.000000e-05            ...   7.998880e-05   2.499800e+04   7.999200e-05   7.999360e-05
+   3.999680e-05   3.999840e-05   4.000000e-05   4.000160e-05            ...   7.999040e-05   7.999200e-05   2.499900e+04   7.999520e-05
+   3.999840e-05   4.000000e-05   4.000160e-05   4.000320e-05            ...   7.999200e-05   7.999360e-05   7.999520e-05   2.500000e+04
+Output matrix
+   1.000000e+00   0.000000e+00   0.000000e+00   0.000000e+00            ...   0.000000e+00   0.000000e+00   0.000000e+00   0.000000e+00
+   1.600000e-09   1.414214e+00   0.000000e+00   0.000000e+00            ...   0.000000e+00   0.000000e+00   0.000000e+00   0.000000e+00
+   3.200000e-09   3.394113e-09   1.732051e+00   0.000000e+00            ...   0.000000e+00   0.000000e+00   0.000000e+00   0.000000e+00
+   4.800000e-09   4.525483e-09   4.618802e-09   2.000000e+00            ...   0.000000e+00   0.000000e+00   0.000000e+00   0.000000e+00
+            ...            ...            ...            ...            ...            ...            ...            ...            ...
+   3.999360e-05   2.828088e-05   2.309216e-05   1.999920e-05            ...   1.581044e+02   0.000000e+00   0.000000e+00   0.000000e+00
+   3.999520e-05   2.828201e-05   2.309309e-05   2.000000e-05            ...   5.057904e-07   1.581076e+02   0.000000e+00   0.000000e+00
+   3.999680e-05   2.828314e-05   2.309401e-05   2.000080e-05            ...   5.058005e-07   5.058005e-07   1.581107e+02   0.000000e+00
+   3.999840e-05   2.828427e-05   2.309493e-05   2.000160e-05            ...   5.058106e-07   5.058106e-07   5.058106e-07   1.581139e+02
+average time 0.757435 s
+average time 0.758504 s (including handle creation)
 ```
 
 
