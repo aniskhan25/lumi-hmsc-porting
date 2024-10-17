@@ -52,9 +52,11 @@ TF_LFLAGS=( $(python -c 'import tensorflow as tf; print(" ".join(tf.sysconfig.ge
 
 # Compiling the GPU kernels into the object file magma_cholesky.cu.o
 hipcc -std=c++14 -c -o magma_cholesky.cu.o magma_cholesky.cu.cc   ${TF_CFLAGS[@]} -D EIGEN_USE_HIP=1 -D TENSORFLOW_USE_ROCM=1 -fPIC -I/opt/magma/include -L/opt/magma/lib -I/opt
+hipcc -std=c++14 -c -o magma_cholesky.cu.o magma_cholesky.cu.cc   ${TF_CFLAGS[@]} -D EIGEN_USE_HIP=1 -D TENSORFLOW_USE_ROCM=1 -fPIC -I/scratch/project_462000008/tiks/MAGMA/include -L/scratch/project_462000008/tiks/MAGMA/lib6.2 -I/opt
 
 # Compiling the final library magma_cholesky.so
 gcc-10 -std=c++14 -shared -o magma_cholesky.so magma_cholesky.cc   magma_cholesky.cu.o ${TF_CFLAGS[@]} -fPIC  ${TF_LFLAGS[@]} -I/opt/magma/include -L/opt/magma/lib -lmagma -D TENSORFLOW_USE_ROCM=1
+gcc-10 -std=c++14 -shared -o magma_cholesky.so magma_cholesky.cc   magma_cholesky.cu.o ${TF_CFLAGS[@]} -fPIC  ${TF_LFLAGS[@]} -I/scratch/project_462000008/tiks/MAGMA/include -L/scratch/project_462000008/tiks/MAGMA/lib6.2 -lmagma -D TENSORFLOW_USE_ROCM=1
 ```
 ## Using the Operation in Python
 
