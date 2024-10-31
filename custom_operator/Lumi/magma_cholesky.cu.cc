@@ -14,19 +14,24 @@ using GPUDevice = Eigen::GpuDevice;
 
 template <typename T>
 void MagmaCholeskyFunctor<GPUDevice, T>::operator()(
-    const GPUDevice& d, int n, const T* in, T* out, int num_matrices) {
+    const GPUDevice& d, int n, int ldda, const T* in, T* out, int num_matrices) {
   magma_init();
 
-  int matrix_size = n * n;
+  int matrix_size = n * ldda;
   hipStream_t stream = NULL;
   magma_int_t* d_info;
   magma_device_t device;
   magma_queue_t magma_queue;
   T** dA_array;
 
+  std::cout << "LDDA" << ldda << "\n";
+  std::cout << "LDDA" << ldda << " N" << n << "\n";
+
   hipStreamCreateWithFlags(&stream, hipStreamNonBlocking); // Data transfer stream
   magma_getdevice(&device);
   magma_queue_create_from_hip(device, stream, NULL, NULL, &magma_queue); // Magma queue
+  
+  hipMemcpy(out, in, sizeof(T) * matrix_size * num_matrices, hipMemcpyDeviceToDevice);
 
   // Allocate device memory for d_info and dA_array
   hipMalloc((void**)&d_info, sizeof(magma_int_t) * num_matrices);
@@ -40,19 +45,18 @@ void MagmaCholeskyFunctor<GPUDevice, T>::operator()(
   }
 
   // Copy matrix pointers to device
-  hipMemcpy(out, in, sizeof(T) * matrix_size * num_matrices, hipMemcpyDeviceToDevice);
   hipMemcpy(dA_array, hA_array, sizeof(T*) * num_matrices, hipMemcpyHostToDevice);
   hipDeviceSynchronize();
 
   if (num_matrices == 1) {
     // Single matrix case
-    magma_dpotrf_expert_gpu(MagmaLower, n, out, n, d_info, 1024, MagmaNative);
-    magmablas_dtranspose_inplace(n, out, n, magma_queue);
+    magma_dpotrf_expert_gpu(MagmaLower, n, out, ldda, d_info, 1024, MagmaNative);
+    magmablas_dtranspose_inplace(n, out, ldda, magma_queue);
   } else {
-    // Batched case for multiple matrices
-    magma_dpotrf_batched(MagmaLower, n, dA_array, n, d_info, num_matrices, magma_queue);
+  // Batched case for multiple matrices
+    magma_dpotrf_batched(MagmaLower, n, dA_array, ldda, d_info, num_matrices, magma_queue);
     for (int i = 0; i < num_matrices; i++) {
-      magmablas_dtranspose_inplace(n, hA_array[i], n, magma_queue);
+      magmablas_dtranspose_inplace(n, hA_array[i], ldda, magma_queue);
     }
   }
 

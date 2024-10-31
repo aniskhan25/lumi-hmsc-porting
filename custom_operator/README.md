@@ -56,7 +56,7 @@ hipcc -std=c++14 -c -o magma_cholesky.cu.o magma_cholesky.cu.cc   ${TF_CFLAGS[@]
 
 # Compiling the final library magma_cholesky.so
 gcc-10 -std=c++14 -shared -o magma_cholesky.so magma_cholesky.cc   magma_cholesky.cu.o ${TF_CFLAGS[@]} -fPIC  ${TF_LFLAGS[@]} -I/opt/magma/include -L/opt/magma/lib -lmagma -D TENSORFLOW_USE_ROCM=1
-gcc-10 -std=c++14 -shared -o magma_cholesky.so magma_cholesky.cc   magma_cholesky.cu.o ${TF_CFLAGS[@]} -fPIC  ${TF_LFLAGS[@]} -I/scratch/project_462000008/tiks/MAGMA/include -L/scratch/project_462000008/tiks/MAGMA/lib6.2 -lmagma -D TENSORFLOW_USE_ROCM=1
+gcc-12 -std=c++14 -shared -o magma_cholesky.so magma_cholesky.cc   magma_cholesky.cu.o ${TF_CFLAGS[@]} -fPIC  ${TF_LFLAGS[@]} -I/scratch/project_462000008/tiks/MAGMA/include -L/scratch/project_462000008/tiks/MAGMA/lib6.2 -lmagma -D TENSORFLOW_USE_ROCM=1
 ```
 ## Using the Operation in Python
 

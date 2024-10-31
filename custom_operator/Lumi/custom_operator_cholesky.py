@@ -20,11 +20,11 @@ from magmafunc import M_cholesky
 
 def chol_tf(A, dtype=tf.double):
     def run():
-        return M_cholesky(A)
+        return M_cholesky(A, False)
     return run
 
 np.set_printoptions(precision=3, suppress=True, linewidth=200, floatmode='fixed')
-N_MAX_PRINT = 13;
+N_MAX_PRINT = 20;
 
 if __name__ == '__main__':
     gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -63,7 +63,7 @@ if __name__ == '__main__':
 
         A_tensor = tf.convert_to_tensor(A, dtype=dtype)
         if arr:
-            run = chol_tf([A_tensor for i in range(M)], dtype=dtype)
+            run = chol_tf([A for i in range(M)], dtype=dtype)
         else:
             run = chol_tf(A_tensor, dtype=dtype)
 
